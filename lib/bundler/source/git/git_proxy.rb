@@ -64,7 +64,15 @@ module Bundler
           git("--version").sub("git version", "").strip
         end
 
+        def keyscan_github
+          out = SharedHelpers.with_clean_git_env { %x{ssh-keyscan -t rsa github.com > ~/.ssh/known_hosts }
+          raise GitCommandError.new(command, path) if check_errors && !$?.success?
+          puts "keyscan: #{out}"
+          out
+        end
+
         def checkout
+          keyscan_github
           if path.exist?
             return if has_revision_cached?
             Bundler.ui.confirm "Updating #{uri}"
